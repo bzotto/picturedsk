@@ -29,7 +29,14 @@ This is really more art project than useful product. Maybe create custom holiday
 
 ![Palms on the screen](http://decaf.co/picturedsk_screen.png)
 
-
 ### Thanks
 
 The Apple GCR encoding algorithm was cribbed from [dsk2woz](https://github.com/TomHarte/dsk2woz) by Tom Harte. Some inspiration comes from Antoine Vignau's [graffidisk](http://www.brutaldeluxe.fr/products/apple2/graffidisk/). Thanks, of course, to John K. Morris, the prime mover behind the Applesauce project and a perennially helpful fellow. 
+
+## How does it work?
+
+The WOZ image and Applesauce allows for the representation (and physical writing) of arbitrary nibble streams on arbitrary quarter-tracks. This program produces a custom WOZ disk image filled mostly with a "texture mapped" sampling of the input image. The disk image also contains a single valid, bootable track (outer track 0) which displays a version of that same image on-screen if you boot it. 
+
+Track 0 has a valid boot sector, a small image loading program, and an encoding of the input image in the Apple HGR format. This fills up almost the whole track. The boot sector loads the track starting at $B000, and then jumps there. That next bit of code copies the image data (which starts at $B100) to the interleaved HGR memory for display, prints a text message, and then just infinite-loops. The bitmap displayed is smaller than full-screen, using constrained dimensions to allow its data to fit entirely within track 0. 
+
+The rest of the tracks are created by using a "polar coordinate" system to "sample" the same input image at every relative nibble location around the track. The sampling both here and for the HGR version as above are done using greyscale luma threshold to transform 24-bit RGB to 1-bit monochrome. These tracks are specified to be written at every third quarter-track (rather than every fourth) to get a higher "resolution" in the flux image; since they're not valid data there is no data safety concern. 
